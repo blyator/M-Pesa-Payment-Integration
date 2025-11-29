@@ -64,7 +64,7 @@ export default function MpesaCheckout() {
   const isValidAmount = parseFloat(amount) > 0;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-linear-to-br from-green-50 to-emerald-100 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8">
         {/* Header */}
         <div className="text-center mb-8">
@@ -125,14 +125,14 @@ export default function MpesaCheckout() {
           {/* Status Messages */}
           {status === 'success' && (
             <div className="flex items-start gap-3 p-4 bg-green-50 border border-green-200 rounded-lg">
-              <CheckCircle2 className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+              <CheckCircle2 className="w-5 h-5 text-green-600 shrink-0 mt-0.5" />
               <p className="text-sm text-green-800">{message}</p>
             </div>
           )}
 
           {status === 'error' && (
             <div className="flex items-start gap-3 p-4 bg-red-50 border border-red-200 rounded-lg">
-              <XCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+              <XCircle className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
               <p className="text-sm text-red-800">{message}</p>
             </div>
           )}
