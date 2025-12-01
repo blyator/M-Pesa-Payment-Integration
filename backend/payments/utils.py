@@ -17,10 +17,9 @@ def get_access_token():
         return None
 
 def generate_password(formatted_time):
-    """
-    Generates the password required for STK Push.
-    Format: Base64(ShortCode + Passkey + Timestamp)
-    """
+    
+    #Generates the password required for STK Push.
+
     data_to_encode = settings.MPESA_SHORTCODE + settings.MPESA_PASSKEY + formatted_time
     encoded_string = base64.b64encode(data_to_encode.encode())
     return encoded_string.decode('utf-8')
