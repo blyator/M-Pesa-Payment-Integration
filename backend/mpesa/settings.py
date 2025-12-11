@@ -87,19 +87,14 @@ WSGI_APPLICATION = 'mpesa.wsgi.application'
 
 
 import dj_database_url
-import os
-from dotenv import load_dotenv
-load_dotenv()
 
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
 DATABASES = {
-    "default": dj_database_url.config(
-        conn_max_age=600,
-        ssl_require=True
-    )
+    'default': dj_database_url.config(conn_max_age=600, ssl_require=True)
 }
+
 
 
 # Password validation

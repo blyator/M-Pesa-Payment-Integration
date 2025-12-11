@@ -9,6 +9,10 @@ from django.conf import settings
 from .utils import get_access_token, generate_password
 from .models import Transaction
 import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
 
 @method_decorator(csrf_exempt, name='dispatch') 
 class InitiateSTKPush(View):
