@@ -1,22 +1,22 @@
-import { useState } from 'react';
-import { Phone, Loader2, CheckCircle2, XCircle } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Phone, Loader2, XCircle } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 export default function MpesaCheckout() {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [amount, setAmount] = useState('');
   const [loading, setLoading] = useState(false);
-  const [status, setStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [status, setStatus] = useState<'idle' | 'success' | 'error' | 'pending'>('idle');
   const [message, setMessage] = useState('');
+  const [checkoutRequestId, setCheckoutRequestId] = useState<string | null>(null);
+  const navigate = useNavigate();
 
   const sanitizePhoneNumber = (value: string) => {
-  
     return value.replace(/\D/g, '');
   };
 
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const sanitized = sanitizePhoneNumber(e.target.value);
-    
-    // Limit to 9 digits 
     setPhoneNumber(sanitized.slice(0, 9));
   };
 
@@ -34,27 +34,77 @@ export default function MpesaCheckout() {
     setStatus('idle');
     setMessage('');
 
-    // Simulate API call
-    // In production, send formattedPhone to your M-Pesa API
-    console.log('Sending payment request:', {
-      phone: formattedPhone,
-      amount: parseFloat(amount)
-    });
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/stkpush/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          phone: formattedPhone,
+          amount: parseFloat(amount)
+        }),
+      });
 
-    setTimeout(() => {
-      // Demo: randomly succeed or fail
-      const success = Math.random() > 0.3;
-      
-      if (success) {
-        setStatus('success');
-        setMessage(`Payment request of KES ${amount} sent to ${formattedPhone}. Please check your phone to complete the transaction.`);
+      const data = await response.json();
+
+      if (response.ok) {
+        if (data.ResponseCode === "0") {
+          // Success Initiation, now start polling
+          setCheckoutRequestId(data.CheckoutRequestID);
+          setStatus('pending');
+          setMessage("Payment initiated! Please check your phone to enter PIN.");
+        } else {
+          setStatus('error');
+          setMessage(data.errorMessage || 'Failed to initiate payment.');
+          setLoading(false);
+        }
       } else {
         setStatus('error');
-        setMessage('Payment failed. Please try again or check your M-Pesa balance.');
+        setMessage(data.error || 'Server error occurred.');
+        setLoading(false);
       }
+    } catch (error) {
+      console.error(error);
+      setStatus('error');
+      setMessage('Network error.');
       setLoading(false);
-    }, 2000);
+    }
   };
+
+  useEffect(() => {
+    let intervalId: any;
+
+    if (checkoutRequestId && status === 'pending') {
+      intervalId = setInterval(async () => {
+        try {
+          const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/check-status/${checkoutRequestId}/`);
+          if (response.ok) {
+            const data = await response.json();
+            
+            if (data.status === 'Success') {
+              clearInterval(intervalId);
+              setLoading(false);
+              setStatus('success');
+              navigate('/success');
+            } else if (data.status === 'Failed' || data.status === 'Cancelled') {
+              clearInterval(intervalId);
+              setLoading(false);
+              setStatus('error');
+              setMessage(data.result_desc || 'Transaction failed or was cancelled.');
+            }
+            // If 'Pending', do nothing and let it poll again
+          }
+        } catch (error) {
+          console.error("Polling error:", error);
+        }
+      }, 2000);
+    }
+
+    return () => {
+      if (intervalId) clearInterval(intervalId);
+    };
+  }, [checkoutRequestId, status, navigate]);
 
   const isValidPhone = () => {
     const sanitized = sanitizePhoneNumber(phoneNumber);
@@ -123,11 +173,11 @@ export default function MpesaCheckout() {
           </div>
 
           {/* Status Messages */}
-          {status === 'success' && (
-            <div className="flex items-start gap-3 p-4 bg-green-50 border border-green-200 rounded-lg">
-              <CheckCircle2 className="w-5 h-5 text-green-600 shrink-0 mt-0.5" />
-              <p className="text-sm text-green-800">{message}</p>
-            </div>
+          {status === 'pending' && (
+             <div className="flex items-start gap-3 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+               <Loader2 className="w-5 h-5 text-blue-600 shrink-0 mt-0.5 animate-spin" />
+               <p className="text-sm text-blue-800">{message}</p>
+             </div>
           )}
 
           {status === 'error' && (
@@ -147,7 +197,7 @@ export default function MpesaCheckout() {
             {loading ? (
               <>
                 <Loader2 className="w-5 h-5 animate-spin" />
-                Processing...
+                Waiting for payment...
               </>
             ) : (
               <>
