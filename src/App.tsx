@@ -1,14 +1,16 @@
-import Mpesa from './components/Mpesa'
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import MpesaCheckout from './components/Mpesa';
+import SuccessPage from './components/SuccessPage';
 
 function App() {
-
   return (
-    <>
-      <div>
-      <Mpesa/>
-      </div>
-    </>
-  )
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<MpesaCheckout />} />
+        <Route path="/success" element={<SuccessPage />} />
+      </Routes>
+    </BrowserRouter>
+  );
 }
 
-export default App
+export default App;
