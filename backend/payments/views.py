@@ -14,7 +14,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
-@method_decorator(csrf_exempt, name='dispatch') 
+
 class InitiateSTKPush(View):
     def post(self, request):
         try:
@@ -79,7 +79,6 @@ class InitiateSTKPush(View):
 
 
 # 2. CALLBACK HANDLER 
-@method_decorator(csrf_exempt, name='dispatch')
 class MpesaCallback(View):
     def post(self, request):
         
